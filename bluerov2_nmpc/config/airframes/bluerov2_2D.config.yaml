@@ -1,19 +1,19 @@
 bluerov2_nmpc_node:
     ros__parameters:
-        W_Wn_factor: 0.15  #  Factor for WN weights
-        F_x_ref:     0.0   #  Reference for Force in x direction
-        F_y_ref:     0.0   #  Reference for Force in y direction
-        F_z_ref:     3.95  #  Reference for Force in z direction
-        M_z_ref:     0.0   #  Reference for moment about z axis
-        W_x:       120.0   #  Weight for x-position
-        W_y:       120.0   #  Weight for y-position
-        W_z:        50.0   #  Weight for z-position
-        W_u:        10.0   #  Weight for x-velocity
-        W_v:        10.0   #  Weight for y-velocity
-        W_w:         4.0   #  Weight for z-velocity   
-        W_psi:      10.0   #  Weight for yaw angle
-        W_r:         1.0   #  Weight for yawrate
-        W_Fx:        0.1   #  Weight for Force in x direction
-        W_Fy:        0.1   #  Weight for Force in y direction
-        W_Fz:        0.005 #  Weight for Force in z direction
-        W_Mz:        0.1   #  Weight for Moment about z axis
+        W_Wn_factor:    0.5   #  Factor for WN weights
+        F_x_ref:        0.0   #  Reference for Force in x direction
+        F_y_ref:        0.0   #  Reference for Force in y direction
+        F_z_ref:       40.0   #  Reference for Force in z direction
+        M_z_ref:        0.0   #  Reference for moment about z axis
+        W_x:          100.0   #  Weight for x-position
+        W_y:          100.0   #  Weight for y-position
+        W_z:          100.0   #  Weight for z-position
+        W_u:            3.0   #  Weight for x-velocity
+        W_v:            3.0   #  Weight for y-velocity
+        W_w:            3.0   #  Weight for z-velocity
+        W_psi:         20.0   #  Weight for yaw angle
+        W_r:            0.1   #  Weight for yawrate
+        W_Fx:           0.01  #  Weight for Force in x direction
+        W_Fy:           0.01  #  Weight for Force in y direction
+        W_Fz:           0.01  #  Weight for Force in z direction
+        W_Mz:           0.5   #  Weight for Moment about z axis
