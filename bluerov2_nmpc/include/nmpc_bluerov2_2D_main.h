@@ -8,6 +8,7 @@
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/float64.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
+#include "std_srvs/srv/set_bool.hpp"
 #include "geometry_msgs/msg/wrench.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
@@ -39,7 +40,6 @@ private:
     rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr   dist_Fz_data_sub;
     rclcpp::Subscription<geometry_msgs::msg::Vector3Stamped>::SharedPtr orientation_sub;
     
-    
     // Publishers
     rclcpp::Publisher<geometry_msgs::msg::Wrench>::SharedPtr nmpc_cmd_wrench_pub;
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr nmpc_cmd_exeTime_pub;
@@ -48,6 +48,9 @@ private:
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr s_sdot_pub;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr nmpc_pred_traj_pub;
     
+    // Services
+    rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr nmpc_set_ctrl_state_srv;
+
     // Subscriber callbacks
     void ref_position_cb(const geometry_msgs::msg::Vector3::ConstSharedPtr& msg);
     void ref_velocity_cb(const geometry_msgs::msg::Vector3::ConstSharedPtr& msg);
@@ -66,10 +69,15 @@ private:
     void publish_wrench(struct NMPC_PC::command_struct& commandstruct);
     void publish_pred_tarjectory(struct  NMPC_PC::acado_struct& traj_struct);
 
+    // Service callbacks
+    void set_ctrl_state_cb(const std_srvs::srv::SetBool::Request::SharedPtr request, 
+                                 std_srvs::srv::SetBool::Response::SharedPtr response);
+
     // State variables
     NMPC_PC* nmpc_pc;
     nmpc_struct_ nmpc_struct;
     online_data_struct_ online_data;
+    bool ctrl_active;
     
     struct _dist_struct
     {

@@ -17,6 +17,7 @@ using namespace std;
 using namespace Eigen;
 using namespace rclcpp;
 using std::placeholders::_1;
+using std::placeholders::_2;
 
 
 void NMPCBlueROV2Node::ref_position_cb(const geometry_msgs::msg::Vector3::ConstSharedPtr& msg)
@@ -181,12 +182,29 @@ void NMPCBlueROV2Node::publish_pred_tarjectory(struct NMPC_PC::acado_struct& tra
     // a = nmpc_pc->nmpc_struct.x[0+9] <<endl;
 }
 
+void NMPCBlueROV2Node::set_ctrl_state_cb(const std_srvs::srv::SetBool::Request::SharedPtr request, 
+                                               std_srvs::srv::SetBool::Response::SharedPtr response)
+{
+    ctrl_active = request->data;
+    response->success = true;
+    if (ctrl_active)
+    {
+        RCLCPP_INFO(get_logger(), "NMPC control is now active");
+        response->message = "NMPC control is now active";
+    }
+    else
+    {
+        RCLCPP_INFO(get_logger(), "NMPC control is now inactive");
+        response->message = "NMPC control is now inactive";
+    }
+}
+
 NMPCBlueROV2Node::NMPCBlueROV2Node() : Node("bluerov2_nmpc_node")
 {
     // ---------------
     // Main loop timer
     // ---------------
-     main_loop_timer = create_wall_timer(SAMPLE_TIME, std::bind(&NMPCBlueROV2Node::main_loop, this));
+    main_loop_timer = create_wall_timer(SAMPLE_TIME, std::bind(&NMPCBlueROV2Node::main_loop, this));
 
     mocap_topic_part = "/predefined/mocap_topic_part";
     dist_Fx_predInit_topic = "/predefined/dist_Fx_predInit_topic";
@@ -223,11 +241,18 @@ NMPCBlueROV2Node::NMPCBlueROV2Node() : Node("bluerov2_nmpc_node")
     
     s_sdot_pub = create_publisher<std_msgs::msg::Float64MultiArray>("outer_nmpc_cmd/s_sdot", 1);
 
+    // --------
+    // Services
+    // --------
+    nmpc_set_ctrl_state_srv = create_service<std_srvs::srv::SetBool>("nmpc_set_control_state", 
+        std::bind(&NMPCBlueROV2Node::set_ctrl_state_cb, this, _1, _2));
+    
+    // --------------------
+    // Roslaunch parameters
+    // --------------------
     nmpc_struct.U_ref.resize(NMPC_NU);
     nmpc_struct.W.resize(NMPC_NY);
-    
-    // Roslaunch parameters
-      
+
     declare_parameter("verbose", rclcpp::PARAMETER_BOOL);
     nmpc_struct.verbose = get_parameter("verbose").as_bool();
     declare_parameter("yaw_control", rclcpp::PARAMETER_BOOL);
@@ -279,6 +304,11 @@ NMPCBlueROV2Node::NMPCBlueROV2Node() : Node("bluerov2_nmpc_node")
     declare_parameter("W_Mz", rclcpp::PARAMETER_DOUBLE);
     nmpc_struct.W(w_idx++) = get_parameter("W_Mz").as_double();
     assert(w_idx == NMPC_NY);
+
+    // ---------
+    // Variables
+    // ---------
+    ctrl_active = true;  // Start with control active
 
     nmpc_struct.sample_time = std::chrono::duration<double>(SAMPLE_TIME).count();
 
@@ -385,8 +415,11 @@ void NMPCBlueROV2Node::main_loop()
 
     std::cout << "predicted dist x "<< online_data.distFx[0]<<endl;
 
-    publish_pred_tarjectory(nmpc_pc->nmpc_struct);
-    publish_wrench(nmpc_pc->nmpc_cmd_struct);
+    if (ctrl_active)
+    {
+        publish_pred_tarjectory(nmpc_pc->nmpc_struct);
+        publish_wrench(nmpc_pc->nmpc_cmd_struct);
+    }
 
     print_flag_offboard = 1;
     print_flag_arm = 1;
